@@ -43,5 +43,25 @@
 
     </xsl:template>
 
+    <xsl:template match="echeance/temperature">
+
+        <xsl:apply-templates select="level"/>
+    </xsl:template>
+
+    <xsl:template match="echeance/temperature/level">
+
+        <xsl:choose>
+            <xsl:when test="contains(@val,'2m')">
+                <xsl:element name="p">
+                    <xsl:value-of select=" format-number(. - 273.15,'####0.00')"/>
+                </xsl:element>
+            </xsl:when>
+            <xsl:otherwise>
+            </xsl:otherwise>
+        </xsl:choose>
+
+
+    </xsl:template>
+
     <xsl:template match="text()"/>
 </xsl:stylesheet>
