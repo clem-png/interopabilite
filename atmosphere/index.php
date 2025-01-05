@@ -35,6 +35,13 @@ $processor->setParameter('', 'heureSoir', $soir);
 
 $htmlMeteo = $processor->transformToXML($xmlMeteo);
 
+$customLocalisation = file_get_contents('https://api-adresse.data.gouv.fr/search/?q=7+pl+de+la+goulotte&postcode=54136');
+//parse pour json
+$jsonLocalisation = json_decode($customLocalisation);
+
+$latCustomLocalisation = $jsonLocalisation->features[0]->geometry->coordinates[1];
+$lonCustomLocalisation = $jsonLocalisation->features[0]->geometry->coordinates[0];
+
 echo <<<HTML
 <!DOCTYPE HTML>
 <html lang="fr">
@@ -50,29 +57,58 @@ echo <<<HTML
             height: 32px;
             object-fit: contain;
         }
-        .meteo {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-around;
-            align-items: center;
-            margin: 20px 0;
+
+        @media screen and (min-width: 700px) {
+            .meteo {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-around;
+                align-items: center;
+                margin: 20px 0;
+                
+            }
+        }
+        @media screen and (max-width: 700px) {
+            .meteo {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                margin: 20px 0;
+                
+            }
         }
         .meteo > div {
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 10px;
-            border: 1px solid #ddd;
+            margin: 10px;
+            border: 1px solid lightblue;
             border-radius: 8px;
-            background-color: #f9f9f9;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: whitesmoke;
         }
+
         .meteo > div p {
-            margin: 5px 0;
-            font-size: 14px;
-            color: #666;
+           margin: 5px 0;
+           font-size: 14px;
+           color: #666;
         }
-                #map {
+
+        #carre {
+            margin-top: 10px;
+            margin-left: 10px;
+            width: 32px;
+            height: 32px;
+            background-color: black;
+            border: 1px solid lightblue;
+            border-radius: 25%;
+        }
+        #qualiteAir{
+            display: flex;
+            flex-direction: row; 
+        }
+        #map {
             height: 100vh; 
         }
     </style>
@@ -80,10 +116,13 @@ echo <<<HTML
 <body>
 
 $htmlMeteo
-
+<div id="qualiteAir">
+    <p>Qualité de l'air : </p>
+     <div id="carre"></div>
+</div>
 <div id="map"></div>
     <script>
-    
+        
         const timestampNow = Date.now();
         console.log(timestampNow);
     
@@ -91,23 +130,26 @@ $htmlMeteo
             .then(response => response.json())
             .then(data => {
                 console.log(data['features'][data['features'].length-1])
+                document.getElementById('carre').style.backgroundColor = data['features'][data['features'].length-1]['attributes'].coul_qual;
             });
     
         var lat = $lat;
         var long = $lon;
+        var latCustom = $latCustomLocalisation;
+        var longCustom = $lonCustomLocalisation;
 
         var map = L.map('map').setView([lat, long], 13);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
+            maxZoom: 11,
         }).addTo(map);
 
         L.marker([lat, long]).addTo(map)
             .bindPopup('Votre position géographique actuelle.')
             .openPopup();
-        
-        
-        
+        L.marker([latCustom, longCustom]).addTo(map)
+            .bindPopup('Localisation custom')
+            .openPopup();
     </script>
 
 </body>
