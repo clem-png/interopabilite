@@ -10,6 +10,7 @@
     <xsl:template match="/">
 
         <xsl:element name="div">
+            <xsl:attribute name="class">meteo</xsl:attribute>
             <xsl:apply-templates />
 
         </xsl:element>
@@ -23,24 +24,30 @@
         <xsl:choose>
             <xsl:when test="contains(@timestamp, $heureMatin)">
                 <xsl:element name="div">
-                    <xsl:call-template name="aspectCiel"/>
-                    <xsl:call-template name="vent"/>
+                    <xsl:element name="div">
+                        <xsl:call-template name="aspectCiel"/>
+                        <xsl:call-template name="vent"/>
+                    </xsl:element>
                     <xsl:apply-templates select="@timestamp"/>
                     <xsl:apply-templates select="temperature"/>
                 </xsl:element>
             </xsl:when>
             <xsl:when test="contains(@timestamp, $heureMidi)">
                 <xsl:element name="div">
-                    <xsl:call-template name="aspectCiel"/>
-                    <xsl:call-template name="vent"/>
+                    <xsl:element name="div">
+                        <xsl:call-template name="aspectCiel"/>
+                        <xsl:call-template name="vent"/>
+                    </xsl:element>
                     <xsl:apply-templates select="@timestamp"/>
                     <xsl:apply-templates select="temperature"/>
                 </xsl:element>
             </xsl:when>
             <xsl:when test="contains(@timestamp, $heureSoir)">
                 <xsl:element name="div">
-                    <xsl:call-template name="aspectCiel"/>
-                    <xsl:call-template name="vent"/>
+                    <xsl:element name="div">
+                        <xsl:call-template name="aspectCiel"/>
+                        <xsl:call-template name="vent"/>
+                    </xsl:element>
                     <xsl:apply-templates select="@timestamp"/>
                     <xsl:apply-templates select="temperature"/>
                 </xsl:element>
