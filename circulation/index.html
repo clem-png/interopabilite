@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body{
+            background-color: darkcyan;
+        }
+        #carre {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+        }
+        #map {
+            height: 100vh;
+        }
+    </style>
+
+</head>
+<body>
+
+<div id="carre"></div>
+
+<div id="map"></div>
+<script>
+    let lat = 0;
+    let long = 0;
+    let fusion = [];
+
+
+    //https://api.cyclocity.fr/contracts/nancy/gbfs/gbfs.json
+
+    let station = [];
+
+    fetch('https://services3.arcgis.com/Is0UwT37raQYl9Jj/arcgis/rest/services/ind_grandest/FeatureServer/0/query?where=lib_zone%3D%27Nancy%27&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=true&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pjson&token=')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('carre').style.backgroundColor = data['features'][data['features'].length-1]['attributes'].coul_qual;
+        });
+
+    /**
+     fetch('https://api.cyclocity.fr/contracts/nancy/gbfs/station_information.json')
+     .then(response => response.json())
+     .then(data => {
+     console.log(data['data']['stations'])
+     });
+
+     fetch('https://api.cyclocity.fr/contracts/nancy/gbfs/station_status.json')
+     .then(response => response.json())
+     .then(data => {
+     console.log(data['data']['stations'])
+     });
+     **/
+
+    Promise.all([
+        fetch('https://api.cyclocity.fr/contracts/nancy/gbfs/station_information.json')
+            .then(response => response.json()),
+        fetch('https://api.cyclocity.fr/contracts/nancy/gbfs/station_status.json')
+            .then(response => response.json())
+    ]).then(([infoData, statusData]) => {
+
+        const stationInfo = infoData['data']['stations'];
+        const stationStatus = statusData['data']['stations'];
+
+        const statusMap = new Map();
+        stationStatus.forEach(status => {
+            statusMap.set(status.station_id,{
+                num_docks_available: status.num_docks_available,
+                num_bikes_available: status.num_bikes_available,
+            });
+        });
+
+        fusion = stationInfo.map(info => ({
+            info,
+            status: statusMap.get(info.station_id),
+        }));
+        console.log(fusion);
+    }).catch(error => {
+        console.error('Erreur lors de la récupération des données :', error);
+    });
+
+    fetch('https://api.ipify.org?format=json')
+        .then(response => response.json())
+        .then(data => {
+            const ip = data.ip;
+            console.log('Votre adresse IP publique est :', ip);
+
+            return fetch(`http://ip-api.com/json/${ip}`);
+        })
+        .then(response => response.json())
+        .then(locationData => {
+            console.log('Informations sur la géolocalisation :', locationData);
+            lat = locationData.lat;
+            long = locationData.lon;
+
+            var map = L.map('map').setView([lat, long], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 13,
+            }).addTo(map);
+
+            fusion.forEach(f =>{
+                L.marker([f.info.lat, f.info.lon]).addTo(map)
+                   .bindPopup(`Nom : ${f.info.name} <br> Vélos disponibles : ${f.status.num_bikes_available} <br> Dock disponibles : ${f.status.num_docks_available}`)
+                   .openPopup();
+            })
+
+        })
+        .catch(error => {
+            console.error('Erreur lors de la récupération de l\'adresse IP :', error);
+        });
+
+
+
+
+</script>
+</body>
+
+</html>
