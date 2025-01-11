@@ -104,7 +104,7 @@
 
             fusion.forEach(f =>{
                 L.marker([f.info.lat, f.info.lon]).addTo(map)
-                   .bindPopup(`Nom : ${f.info.name} <br> Vélos disponibles : ${f.status.num_bikes_available} <br> Dock disponibles : ${f.status.num_docks_available}`)
+                   .bindPopup(`Nom : ${f.info.name} <br> Adresse : ${f.info.address} <br> Capacité max : ${f.info.capacity} <br> Vélos disponibles : ${f.status.num_bikes_available} <br> Dock disponibles : ${f.status.num_docks_available}`)
                    .openPopup();
             })
 

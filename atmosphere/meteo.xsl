@@ -3,16 +3,17 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:output method="html" encoding="UTF-8" indent="yes"/>
 
+    <xsl:param name="dateDemain"/>
     <xsl:param name="heureMatin"/>
     <xsl:param name="heureMidi"/>
     <xsl:param name="heureSoir"/>
+
 
     <xsl:template match="/">
 
         <xsl:element name="div">
             <xsl:attribute name="class">meteo</xsl:attribute>
             <xsl:apply-templates />
-
         </xsl:element>
 
     </xsl:template>
@@ -24,31 +25,40 @@
         <xsl:choose>
             <xsl:when test="contains(@timestamp, $heureMatin)">
                 <xsl:element name="div">
+                    <xsl:element name="h3">
+                        Matin
+                    </xsl:element>
+                    <xsl:apply-templates select="@timestamp"/>
                     <xsl:element name="div">
                         <xsl:call-template name="aspectCiel"/>
                         <xsl:call-template name="vent"/>
                     </xsl:element>
-                    <xsl:apply-templates select="@timestamp"/>
                     <xsl:apply-templates select="temperature"/>
                 </xsl:element>
             </xsl:when>
             <xsl:when test="contains(@timestamp, $heureMidi)">
                 <xsl:element name="div">
+                    <xsl:element name="h3">
+                        Midi
+                    </xsl:element>
+                    <xsl:apply-templates select="@timestamp"/>
                     <xsl:element name="div">
                         <xsl:call-template name="aspectCiel"/>
                         <xsl:call-template name="vent"/>
                     </xsl:element>
-                    <xsl:apply-templates select="@timestamp"/>
                     <xsl:apply-templates select="temperature"/>
                 </xsl:element>
             </xsl:when>
             <xsl:when test="contains(@timestamp, $heureSoir)">
                 <xsl:element name="div">
+                    <xsl:element name="h3">
+                        Soir
+                    </xsl:element>
+                    <xsl:apply-templates select="@timestamp"/>
                     <xsl:element name="div">
                         <xsl:call-template name="aspectCiel"/>
                         <xsl:call-template name="vent"/>
                     </xsl:element>
-                    <xsl:apply-templates select="@timestamp"/>
                     <xsl:apply-templates select="temperature"/>
                 </xsl:element>
             </xsl:when>
@@ -78,7 +88,8 @@
         <xsl:choose>
             <xsl:when test="contains(@val,'2m')">
                 <xsl:element name="p">
-                    <xsl:value-of select=" format-number(. - 273.15,'####0.00')"/>
+                    <xsl:value-of select=" format-number(. - 273.15,'####0')"/>°C
+                    <xsl:comment>Température à 2 mètres</xsl:comment>
                 </xsl:element>
             </xsl:when>
             <xsl:otherwise>

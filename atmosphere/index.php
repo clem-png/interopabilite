@@ -29,6 +29,8 @@ $matin = $dateDemain . ' 07:00:00';
 $midi = $dateDemain . ' 13:00:00';
 $soir = $dateDemain . ' 19:00:00';
 
+$processor->setParameter('', 'dateDemain', $dateDemain);
+
 $processor->setParameter('', 'heureMatin', $matin);
 $processor->setParameter('', 'heureMidi', $midi);
 $processor->setParameter('', 'heureSoir', $soir);
@@ -129,30 +131,62 @@ $htmlMeteo
         fetch('https://services3.arcgis.com/Is0UwT37raQYl9Jj/arcgis/rest/services/ind_grandest/FeatureServer/0/query?where=lib_zone%3D%27Nancy%27&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=true&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pjson&token=')
             .then(response => response.json())
             .then(data => {
-                console.log(data['features'][data['features'].length-1])
+                //console.log(data['features'][data['features'].length-1])
                 document.getElementById('carre').style.backgroundColor = data['features'][data['features'].length-1]['attributes'].coul_qual;
             });
-    
+        
+
+        
         var lat = $lat;
         var long = $lon;
         var latCustom = $latCustomLocalisation;
         var longCustom = $lonCustomLocalisation;
 
-        var map = L.map('map').setView([lat, long], 13);
+        var map = L.map('map').setView([lat, long], 20);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 11,
         }).addTo(map);
 
-        L.marker([lat, long]).addTo(map)
+        L.marker([lat, long]).addTo(map)    
             .bindPopup('Votre position géographique actuelle.')
             .openPopup();
         L.marker([latCustom, longCustom]).addTo(map)
             .bindPopup('Localisation custom')
             .openPopup();
+        
+        fetch('./cifs_waze_v2.json')
+        .then(response => response.json())
+        .then(data => {
+            var incidents = data['incidents'];
+            incidents.forEach(i => {
+                var poly = i.location.polyline;
+                var tabPoly = poly.split(" ");
+                let latPoly = parseFloat(tabPoly[0]);
+                let longPoly = parseFloat(tabPoly[1]);
+                console.log(i);
+                var marker = L.marker([latPoly, longPoly]).addTo(map)
+                .bindPopup('Localisation : '+ i.location.street + ' <br> Description : ' + i.description + ' <br> Date de fin :'+ i.endtime)
+                .openPopup();
+            })
+
+        });
+       
     </script>
 
 </body>
+<footer>
+    
+    <p>Lien Github : <a href=""></a></p>
+    <p>Listes des APIs : </p>
+    <ul>
+    <li><a href="https://ip-api.com/">IP-API</a></li>
+    <li><a href="https://www.infoclimat.fr/api-meteo">Meteo</a></li>
+    <li><a href="https://services3.arcgis.com/Is0UwT37raQYl9Jj/arcgis/rest/services/ind_grandest/FeatureServer/0/query?where=lib_zone%3D%27Nancy%27&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=true&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pjson&token=">Qualité de l'air</a></li>
+    <!--<li><a href=""></a></li>-->
+     </ul>
+    
+</footer>
 </html>
 HTML;
 
