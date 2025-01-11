@@ -45,11 +45,15 @@ async function getPublicIP() {
 
 async function getGeolocation(ip) {
     try {
-        const response = await fetch(`http://ip-api.com/json/${ip}`);
+        //marche pas celle la :
+        //const response = await fetch(`https://ip-api.com/json/${ip}`);
+
+        const response = await fetch(`https://ipapi.co/${ip}/json/`);
         const locationData = await response.json();
+        console.log("Données de géolocalisation :", locationData);
         return {
-            lat: locationData.lat,
-            lon: locationData.lon,
+            lat: locationData.latitude,
+            lon: locationData.longitude,
         };
     } catch (error) {
         console.error("Erreur lors de la récupération des données de géolocalisation :", error);
@@ -243,7 +247,6 @@ console.log("Coordonnées réutilisables :", lat, lon);
 fetch('https://www.infoclimat.fr/public-api/gfs/json?_ll='+lat+','+lon+'&_auth=ARsDFFIsBCZRfFtsD3lSe1Q8ADUPeVRzBHgFZgtuAH1UMQNgUTNcPlU5VClSfVZkUn8AYVxmVW0Eb1I2WylSLgFgA25SNwRuUT1bPw83UnlUeAB9DzFUcwR4BWMLYwBhVCkDb1EzXCBVOFQoUmNWZlJnAH9cfFVsBGRSPVs1UjEBZwNkUjIEYVE6WyYPIFJjVGUAZg9mVD4EbwVhCzMAMFQzA2JRMlw5VThUKFJiVmtSZQBpXGtVbwRlUjVbKVIuARsDFFIsBCZRfFtsD3lSe1QyAD4PZA%3D%3D&_c=19f3aa7d766b6ba91191c8be71dd1ab2')
     .then(response => response.json())
     .then(data => {
-        console.log(data)
         let date = adj.toISOString().split('T')[0];
         date += ' 13:00:00'
 
@@ -254,7 +257,6 @@ fetch('https://www.infoclimat.fr/public-api/gfs/json?_ll='+lat+','+lon+'&_auth=A
         }
 
         let res = jsonMap.get(date);
-        console.log(res)
 
         if(res === undefined){
             console.log('Pas de données disponibles pour la meteo à cette date')

@@ -5,9 +5,7 @@
 $opts = array('http' => array('proxy'=> 'www-cache:3128', 'request_fulluri'=> true), 'ssl' => array( 'verify_peer' => false, 'verify_peer_name' => false));
 $context = stream_context_create($opts);
 
-$ipjson = file_get_contents('https://api.ipify.org?format=json', true,$context);
-$ip = json_decode($ipjson)->ip;
-//echo $_SERVER['REMOTE_ADDR'];
+$ip =$_SERVER['REMOTE_ADDR'];
 //$ip = '193.50.135.206';
 
 //http://ip-api.com/php/?fields=61439
@@ -59,6 +57,16 @@ echo <<<HTML
     body{
     background-color: darkcyan;
     }
+        footer{
+            padding: 10px;
+            background-color: white;
+            color: white;
+            font-size: 20px;
+            border: 1px solid black;
+        }
+        footer > p{
+            color: black;
+        }
         img {
             width: 32px;
             height: 32px;
@@ -129,9 +137,16 @@ $htmlMeteo
 </div>
 <div id="map"></div>
     <script>
+    
+       function dateSimilaire(d1,d2){
+            return (
+                d1.getDate() === d2.getDate() &&
+                d1.getMonth() === d2.getMonth() &&
+                d1.getFullYear() === d2.getFullYear()
+            );
+        }
         
-        const timestampNow = Date.now();
-        console.log(timestampNow);
+        const adj = new Date();
     
         fetch('https://services3.arcgis.com/Is0UwT37raQYl9Jj/arcgis/rest/services/ind_grandest/FeatureServer/0/query?where=lib_zone%3D%27Nancy%27&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=true&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pjson&token=')
             .then(response => response.json())
@@ -176,7 +191,7 @@ $htmlMeteo
                 var tabPoly = poly.split(" ");
                 let latPoly = parseFloat(tabPoly[0]);
                 let longPoly = parseFloat(tabPoly[1]);
-                console.log(i);
+                
                 var marker = L.marker([latPoly, longPoly]).addTo(map)
                 .bindPopup('Localisation : '+ i.location.street + ' <br> Description : ' + i.description + ' <br> Date de fin :'+ i.endtime)
                 .openPopup();
@@ -189,7 +204,7 @@ $htmlMeteo
 </body>
 <footer>
     
-    <p>Lien Github : <a href=""></a></p>
+    <p>Lien Github : <a href="https://github.com/clem-png/interopabilite">clem-png</a></p>
     <p>Listes des APIs : </p>
     <ul>
     <li><a href="https://ip-api.com/">API IP GEOLOCALISATION</a></li>
