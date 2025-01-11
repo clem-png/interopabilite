@@ -2,18 +2,23 @@
 
 //https://adresse.data.gouv.fr/api-doc/adresse
 
+$opts = array('http' => array('proxy'=> 'www-cache:3128', 'request_fulluri'=> true), 'ssl' => array( 'verify_peer' => false, 'verify_peer_name' => false));
+$context = stream_context_create($opts);
+
+$ipjson = file_get_contents('https://api.ipify.org?format=json', true,$context);
+$ip = json_decode($ipjson)->ip;
 //echo $_SERVER['REMOTE_ADDR'];
-$ip = '193.50.135.206';
+//$ip = '193.50.135.206';
 
 //http://ip-api.com/php/?fields=61439
 
-$bruteCo = file_get_contents('http://ip-api.com/json/'. $ip);
+$bruteCo = file_get_contents('http://ip-api.com/json/'. $ip, true,$context);
 $jsonCo = json_decode($bruteCo);
 
 $lat = strval($jsonCo->lat);
 $lon = strval($jsonCo->lon);
 
-$bruteMeteo = file_get_contents("https://www.infoclimat.fr/public-api/gfs/xml?_ll={$lat},{$lon}&_auth=ARsDFFIsBCZRfFtsD3lSe1Q8ADUPeVRzBHgFZgtuAH1UMQNgUTNcPlU5VClSfVZkUn8AYVxmVW0Eb1I2WylSLgFgA25SNwRuUT1bPw83UnlUeAB9DzFUcwR4BWMLYwBhVCkDb1EzXCBVOFQoUmNWZlJnAH9cfFVsBGRSPVs1UjEBZwNkUjIEYVE6WyYPIFJjVGUAZg9mVD4EbwVhCzMAMFQzA2JRMlw5VThUKFJiVmtSZQBpXGtVbwRlUjVbKVIuARsDFFIsBCZRfFtsD3lSe1QyAD4PZA%3D%3D&_c=19f3aa7d766b6ba91191c8be71dd1ab2");
+$bruteMeteo = file_get_contents("https://www.infoclimat.fr/public-api/gfs/xml?_ll={$lat},{$lon}&_auth=ARsDFFIsBCZRfFtsD3lSe1Q8ADUPeVRzBHgFZgtuAH1UMQNgUTNcPlU5VClSfVZkUn8AYVxmVW0Eb1I2WylSLgFgA25SNwRuUT1bPw83UnlUeAB9DzFUcwR4BWMLYwBhVCkDb1EzXCBVOFQoUmNWZlJnAH9cfFVsBGRSPVs1UjEBZwNkUjIEYVE6WyYPIFJjVGUAZg9mVD4EbwVhCzMAMFQzA2JRMlw5VThUKFJiVmtSZQBpXGtVbwRlUjVbKVIuARsDFFIsBCZRfFtsD3lSe1QyAD4PZA%3D%3D&_c=19f3aa7d766b6ba91191c8be71dd1ab2", true,$context);
 
 $xmlMeteo = simplexml_load_string($bruteMeteo);
 
@@ -37,7 +42,7 @@ $processor->setParameter('', 'heureSoir', $soir);
 
 $htmlMeteo = $processor->transformToXML($xmlMeteo);
 
-$customLocalisation = file_get_contents('https://api-adresse.data.gouv.fr/search/?q=7+pl+de+la+goulotte&postcode=54136');
+$customLocalisation = file_get_contents('https://api-adresse.data.gouv.fr/search/?q=7+pl+de+la+goulotte&postcode=54136', true,$context);
 //parse pour json
 $jsonLocalisation = json_decode($customLocalisation);
 
@@ -131,8 +136,15 @@ $htmlMeteo
         fetch('https://services3.arcgis.com/Is0UwT37raQYl9Jj/arcgis/rest/services/ind_grandest/FeatureServer/0/query?where=lib_zone%3D%27Nancy%27&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=true&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pjson&token=')
             .then(response => response.json())
             .then(data => {
-                //console.log(data['features'][data['features'].length-1])
-                document.getElementById('carre').style.backgroundColor = data['features'][data['features'].length-1]['attributes'].coul_qual;
+                for(let temp of data['features']) {
+        
+                    let dateAtmo = new Date(temp['attributes']['date_ech']);
+        
+                    if (dateSimilaire(adj, dateAtmo)) {
+                        document.getElementById('carre').style.backgroundColor = temp['attributes'].coul_qual;
+                    }
+        
+                }
             });
         
 
@@ -180,10 +192,11 @@ $htmlMeteo
     <p>Lien Github : <a href=""></a></p>
     <p>Listes des APIs : </p>
     <ul>
-    <li><a href="https://ip-api.com/">IP-API</a></li>
+    <li><a href="https://ip-api.com/">API IP GEOLOCALISATION</a></li>
     <li><a href="https://www.infoclimat.fr/api-meteo">Meteo</a></li>
     <li><a href="https://services3.arcgis.com/Is0UwT37raQYl9Jj/arcgis/rest/services/ind_grandest/FeatureServer/0/query?where=lib_zone%3D%27Nancy%27&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=true&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pjson&token=">Qualité de l'air</a></li>
-    <!--<li><a href=""></a></li>-->
+    <li><a href="https://adresse.data.gouv.fr/api-doc/adresse">Gouvernement adresse api</a></li>
+    <li><a href="https://api.ipify.org?format=json">API IP</a></li>
      </ul>
     
 </footer>
