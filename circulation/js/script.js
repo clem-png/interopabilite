@@ -16,6 +16,7 @@ let station = [];
  *
  */
 const egoux = document.getElementById('egoux');
+const hospParDep = document.getElementById('hospParDep')
 
 //Les foncitons
 
@@ -54,6 +55,7 @@ async function getGeolocation(ip) {
         return {
             lat: locationData.latitude,
             lon: locationData.longitude,
+            postal: locationData.postal
         };
     } catch (error) {
         console.error("Erreur lors de la récupération des données de géolocalisation :", error);
@@ -64,7 +66,7 @@ async function getGeolocation(ip) {
 async function initializeMap() {
     try {
         const ip = await getPublicIP();
-        const { lat, lon } = await getGeolocation(ip);
+        const { lat, lon, postal } = await getGeolocation(ip);
 
         console.log("Latitude :", lat, "Longitude :", lon);
 
@@ -79,7 +81,7 @@ async function initializeMap() {
                 .openPopup();
         });
 
-        return { lat, lon };
+        return { lat, lon, postal };
     } catch (error) {
         console.error("Erreur lors de l'initialisation de la carte :", error);
     }
@@ -102,6 +104,25 @@ async function lectureMaxeville(p){
     return donnees;
 }
 
+async function lectureParDep(p,dep){
+
+    const dureeStr = new Date(Date.now() - 3 * 365.25 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    let donnees = [];
+    await fetch('https://tabular-api.data.gouv.fr/api/resources/5c4e1452-3850-4b59-b11c-3dd51d7fb8b5/data/?dep__exact='+dep+'&date__greater='+dureeStr+'&page='+p+'&page_size=50')
+        .then(response => response.json())
+        .then(data => {
+            donnees = data.data
+                .map(d => ({
+                    label: d.date,
+                    valeur: d.hosp
+                }));
+        }).catch(error => {
+            return [];
+        })
+    return donnees;
+}
+
 async function assemblageDonneMaxeville(){
     let p = 1;
     let donneesRegroupe = []
@@ -115,6 +136,21 @@ async function assemblageDonneMaxeville(){
     }
     return donneesRegroupe;
 }
+
+async function assemblageDonneParDep(dep){
+    let p = 1;
+    let donneesRegroupe = []
+    while(true){
+        let donnees = await lectureParDep(p,dep);
+        p++;
+        if(donnees.length === 0){
+            break;
+        }
+        donneesRegroupe = donneesRegroupe.concat(donnees);
+    }
+    return donneesRegroupe;
+}
+
 
 
 /**
@@ -235,7 +271,7 @@ Promise.all([
     console.error('Erreur lors de la récupération des données :', error);
 });
 
-const { lat, lon } = await initializeMap();
+const { lat, lon, postal } = await initializeMap();
 console.log("Coordonnées réutilisables :", lat, lon);
 
 /**
@@ -270,3 +306,62 @@ fetch('https://www.infoclimat.fr/public-api/gfs/json?_ll='+lat+','+lon+'&_auth=A
             }
         }
     });
+
+/**
+ ---------------------------------------------------------------
+ *                      GRAPHE COVID PAR DEP
+  ----------------------------------------------------------------
+ */
+
+let codePostal = '';
+try{
+    codePostal = postal.substring(0,2);
+}catch (e) {
+    codePostal = '54';
+}
+
+let donneesDep = await assemblageDonneParDep(codePostal);
+console.log(donneesDep);
+
+
+let labelsCovid = donneesDep.map(d => d.label);
+let valeurCovid = donneesDep.map(d => d.valeur);
+
+new Chart(hospParDep, {
+    type: 'line',
+    data: {
+        labels: labelsCovid,
+        datasets: [{
+            label: 'Informations Hospitalisation depuis 3ans en '+codePostal,
+            data: valeurCovid,
+            fill: false,
+            borderColor: 'orange',
+            backgroundColor: 'black',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top'
+            }
+        },
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: 'Annees'
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Valeurs'
+                },
+                beginAtZero: true
+            }
+        }
+    }
+});
