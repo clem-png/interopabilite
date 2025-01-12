@@ -51,7 +51,6 @@ async function getGeolocation(ip) {
 
         const response = await fetch(`https://ipapi.co/${ip}/json/`);
         const locationData = await response.json();
-        console.log("Données de géolocalisation :", locationData);
         return {
             lat: locationData.latitude,
             lon: locationData.longitude,
@@ -66,9 +65,7 @@ async function getGeolocation(ip) {
 async function initializeMap() {
     try {
         const ip = await getPublicIP();
-        const { lat, lon, postal } = await getGeolocation(ip);
-
-        console.log("Latitude :", lat, "Longitude :", lon);
+        const { lat, lon, postal} = await getGeolocation(ip);
 
         const map = L.map('map').setView([lat, lon], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -81,7 +78,7 @@ async function initializeMap() {
                 .openPopup();
         });
 
-        return { lat, lon, postal };
+        return { lat, lon, postal};
     } catch (error) {
         console.error("Erreur lors de l'initialisation de la carte :", error);
     }
@@ -159,8 +156,6 @@ async function assemblageDonneParDep(dep){
  ----------------------------------------------------------------
  */
 let egouxMaxevilleDonnees = await assemblageDonneMaxeville();
-console.log(egouxMaxevilleDonnees)
-
 
 let labelsEgoux = egouxMaxevilleDonnees.map(d => d.label);
 let egouxValeurs = egouxMaxevilleDonnees.map(d => d.valeur);
@@ -271,8 +266,7 @@ Promise.all([
     console.error('Erreur lors de la récupération des données :', error);
 });
 
-const { lat, lon, postal } = await initializeMap();
-console.log("Coordonnées réutilisables :", lat, lon);
+const { lat, lon, postal} = await initializeMap();
 
 /**
  ----------------------------------------------------------------
@@ -321,8 +315,6 @@ try{
 }
 
 let donneesDep = await assemblageDonneParDep(codePostal);
-console.log(donneesDep);
-
 
 let labelsCovid = donneesDep.map(d => d.label);
 let valeurCovid = donneesDep.map(d => d.valeur);
